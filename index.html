@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tap Tap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Apple-style font -->
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(to bottom, #7B2FF2 0%, #BDEBFF 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .centered {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 100%;
+    }
+    .fade-in {
+      animation: fadein 1.7s;
+      opacity: 1;
+    }
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .tap-button {
+      margin-top: 32px;
+      padding: 16px 40px;
+      font-size: 1.22rem;
+      border-radius: 36px;
+      border: none;
+      background: linear-gradient(90deg,#A770EF,#FDB99B);
+      color: white;
+      font-weight: 700;
+      letter-spacing: 2px;
+      transition: box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(90,30,181,0.2);
+      cursor: pointer;
+      outline: none;
+    }
+    .tap-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    #tap-img {
+      width: 180px;
+      max-width: 60vw;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: transform 0.12s;
+      position: relative;
+      z-index: 2;
+      user-select: none;
+    }
+    .counter {
+      font-size: 1.18rem;
+      margin-bottom: 20px;
+      color: #5620c3;
+      font-weight: 600;
+      user-select: none;
+    }
+    .flying-img {
+      position: absolute;
+      width: 48px;
+      animation: fly 0.88s cubic-bezier(.61,-0.07,0,1.08) forwards;
+      pointer-events: none;
+      z-index: 8;
+    }
+    @keyframes fly {
+      0% { opacity: 0.7; transform: scale(1) translateY(0); }
+      75% { opacity: 1; }
+      100% { opacity: 0; transform: scale(0.7) translateY(-120px) rotate(35deg);}
+    }
+    .badge-modal {
+      position: fixed;
+      left: 0; right: 0; top: 0; bottom: 0;
+      background: rgba(60,22,120,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      animation: fadein 0.7s;
+    }
+    .badge-content {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 12px 44px rgba(90,30,181,0.18);
+      padding: 42px 26px 32px 26px;
+      min-width: 250px;
+      max-width: 88vw;
+      text-align: center;
+      font-size: 1.2rem;
+      color: #6a14cf;
+      font-weight: 700;
+      line-height: 1.5;
+      position: relative;
+      user-select: none;
+    }
+    .share-button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      border-radius: 32px;
+      border: none;
+      background: #1DA1F2;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 14px rgba(29, 161, 242, 0.4);
+      transition: background-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    .share-button:hover, .share-button:focus {
+      background-color: #0d8ddb;
+      box-shadow: 0 6px 20px rgba(13, 141, 219, 0.6);
+    }
+    @media (max-width: 530px) {
+      #tap-img { width: 120px; }
+      .badge-content { font-size: 1.09rem; padding: 28px 8px 22px 8px; }
+      .share-button {
+        padding: 10px 24px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- FIRST SCREEN -->
+  <div id="start" class="centered fade-in">
+    <img src="logo.png" alt="Logo" style="max-width:35vw; width:180px; margin-bottom:32px; border-radius:35px; box-shadow:0 2px 14px rgba(120, 40, 230, 0.2);" />
+    <br />
+    <button class="tap-button" id="enter-btn">Tap Tap</button>
+  </div>
+
+  <!-- SECOND SCREEN -->
+  <div id="main" style="display:none;">
+    <div class="tap-main">
+      <div class="counter" id="counter">Tap: 0/100</div>
+      <img src="tap.png" id="tap-img" draggable="false" alt="Tap button" />
+    </div>
+  </div>
+
+  <!-- BADGE MODAL -->
+  <div id="badge-modal" class="badge-modal" style="display:none;">
+    <div class="badge-content">
+      You got rugged by Tap Game.
+      <br />
+      <button id="share-btn" class="share-button" type="button">Share</button>
+    </div>
+  </div>
+
+  <script>
+    // Переход с первого экрана на основной
+    document.getElementById('enter-btn').addEventListener('click', function() {
+      const startScreen = document.getElementById('start');
+      startScreen.style.transition = "opacity 0.65s";
+      startScreen.style.opacity = '0';
+      setTimeout(() => {
+        startScreen.style.display = 'none';
+        document.getElementById('main').style.display = 'block';
+        window.scrollTo(0, 0);
+      }, 650);
+    });
+
+    // Логика нажатий по картинке
+    const tapArea = document.getElementById('tap-img');
+    let count = 0;
+    const MAX = 100;
+    const counter = document.getElementById('counter');
+    const badgeModal = document.getElementById('badge-modal');
+    const shareBtn = document.getElementById('share-btn');
+
+    tapArea.addEventListener('mousedown', () => { tapArea.style.transform = 'scale(0.93)'; });
+    tapArea.addEventListener('mouseup', () => { tapArea.style.transform = 'scale(1)'; });
+    tapArea.addEventListener('mouseleave', () => { tapArea.style.transform = 'scale(1)'; });
+
+    tapArea.addEventListener('click', () => {
+      if (count >= MAX) return;
+
+      count++;
+      counter.textContent = `Tap: ${count}/${MAX}`;
+
+      // Летающая картинка
+      const img = document.createElement('img');
+      img.src = 'tap2.png';
+      img.className = 'flying-img';
+      const rect = tapArea.getBoundingClientRect();
+      img.style.left =
+        rect.left + rect.width / 2 - 24 + (Math.random() - 0.5) * 60 + window.scrollX + 'px';
+      img.style.top =
+        rect.top + rect.height / 2 - 24 + (Math.random() - 0.2) * 12 + window.scrollY + 'px';
+
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), 880);
+
+      if (count === MAX) {
+        setTimeout(() => {
+          badgeModal.style.display = 'flex';
+        }, 600);
+      }
+    });
+
+    // Кнопка Share - открывает Twitter с постом
+    shareBtn.addEventListener('click', () => {
+      const tweetText = encodeURIComponent(
+        "I'm got rugged by Tap Game. Check it: rice-tap-game.vercel.app"
+      );
+      const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+      window.open(tweetUrl, '_blank', 'noopener,noreferrer,width=550,height=420');
+    });
+
+    // Убираем возможность закрыть модалку кликом вне
+    // (потому что по условию плашка не должна закрываться сама)
+  </script>
+</body>
+</html>
